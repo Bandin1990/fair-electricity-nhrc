@@ -18,3 +18,5 @@ dist/
 /*.pdf
 /*.docx
 /*.txt
+
+.vercel
