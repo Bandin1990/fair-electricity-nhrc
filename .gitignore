@@ -10,6 +10,7 @@ dist/
 /.vinext/
 /build/
 /tmp-*/
+/~WRL*.tmp
 /.npm-cache/
 /Index.pdf
 /All_เอกสารนำเสนอ/
