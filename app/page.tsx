@@ -57,7 +57,18 @@ export default function Home() {
     const headers = { apikey: key, Authorization: `Bearer ${key}` };
     fetch(`${url}/rest/v1/project_background?id=eq.main&select=title,facts,closing`, { headers }).then((r) => r.ok ? r.json() : []).then((rows) => rows[0] && setBackground(rows[0]));
     fetch(`${url}/rest/v1/committee_members?select=id,name,role,note,image_url&status=eq.published&order=sort_order.asc`, { headers }).then((r) => r.ok ? r.json() : []).then((rows) => rows.length && setCommittee(rows));
-    fetch(`${url}/rest/v1/project_survey?id=eq.main&select=title,intro,highlights,source_url`, { headers }).then((r) => r.ok ? r.json() : []).then((rows) => rows[0] && setSurvey(rows[0]));
+    fetch(`${url}/rest/v1/project_survey?id=eq.main&select=title,intro,highlights,source_url`, { headers }).then((r) => r.ok ? r.json() : []).then((rows) => {
+      const remote = rows[0] as Partial<ProjectSurvey> | undefined;
+      if (!remote) return;
+      setSurvey({
+        ...fallbackSurvey,
+        ...remote,
+        title: remote.title?.trim() || fallbackSurvey.title,
+        intro: remote.intro?.trim() || fallbackSurvey.intro,
+        highlights: Array.isArray(remote.highlights) && remote.highlights.length ? remote.highlights : fallbackSurvey.highlights,
+        source_url: remote.source_url?.trim() || fallbackSurvey.source_url,
+      });
+    });
     fetch(`${url}/rest/v1/activities?status=eq.published&select=slug,date_label,title,audience,location,participants_label&order=date_label.asc`, { headers }).then((r) => r.ok ? r.json() : []).then((rows) => rows.length && setManagedActivities(rows));
     fetch(`${url}/rest/v1/content_items?kind=eq.media&status=eq.published&select=title,summary,source_url,cover_url&order=created_at.desc`, { headers }).then((r) => r.ok ? r.json() : []).then((rows) => rows.length && setManagedMedia(rows.map((row: { title: string; summary: string; source_url: string; cover_url: string | null }) => ({ type: "วิดีโอ", title: row.title, tag: row.summary || "คลังสื่อ", href: row.source_url, image: row.cover_url, tone: "blue" }))));
     fetch(`${url}/rest/v1/content_items?kind=eq.document&status=eq.published&select=title,summary,source_url,cover_url&order=created_at.desc`, { headers }).then((r) => r.ok ? r.json() : []).then((rows) => rows.length && setManagedDocuments(rows.map((row: { title: string; summary: string; source_url: string; cover_url: string | null }) => ({ type: row.title.includes("รายงาน") ? "รายงาน" : "เอกสารนำเสนอ", title: row.title, tag: row.summary || "เอกสารเผยแพร่", href: row.source_url, image: row.cover_url, tone: "ink" }))));
