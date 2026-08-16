@@ -10,6 +10,8 @@ import "./status.css";
 
 type ActivityRow = { id?: string; slug: string; date_label: string; title: string; audience: string; location: string; participants_label: string; detail: string; cover_url: string; status: string };
 type ContentRow = { id?: string; kind: "media" | "document" | "proposal"; title: string; summary: string; cover_url: string; source_url: string; status: string };
+type StoredSession = { access_token: string; refresh_token?: string; expires_at?: number };
+const SESSION_KEY = "fair-electricity-admin-session";
 const emptyActivity = (): ActivityRow => ({ slug: "กิจกรรมใหม่", date_label: "", title: "", audience: "", location: "", participants_label: "", detail: "", cover_url: "", status: "draft" });
 const emptyContent = (kind: ContentRow["kind"]): ContentRow => ({ kind, title: "", summary: "", cover_url: "", source_url: "", status: "draft" });
 const defaultMedia: ContentRow[] = [
@@ -49,6 +51,7 @@ export default function AdminPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [token, setToken] = useState("");
+  const [sessionReady, setSessionReady] = useState(false);
   const [message, setMessage] = useState("");
 
   const config = () => ({ url: process.env.NEXT_PUBLIC_SUPABASE_URL, key: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY });
@@ -67,16 +70,26 @@ export default function AdminPage() {
       get("activities?select=id,slug,date_label,title,audience,location,participants_label,detail,cover_url,status&order=date_label.asc"),
       get("content_items?select=id,kind,title,summary,cover_url,source_url,status&order=created_at.desc"),
     ]);
-    if (backgroundRows[0]) setBackground(backgroundRows[0]); if (committeeRows.length) setCommittee(committeeRows); if (surveyRows[0]) setSurvey(surveyRows); if (proposalRows.length) setProposalPoints(proposalRows); if (measureRows.length) setMeasures(measureRows); setActivities(activityRows); setContent(contentRows);
+    if (backgroundRows[0]) setBackground(backgroundRows[0]); if (committeeRows.length) setCommittee(committeeRows);
+    if (surveyRows[0]) setSurvey({ ...fallbackSurvey, ...surveyRows[0], highlights: Array.isArray(surveyRows[0].highlights) && surveyRows[0].highlights.length ? surveyRows[0].highlights : fallbackSurvey.highlights });
+    if (proposalRows.length) setProposalPoints(proposalRows); if (measureRows.length) setMeasures(measureRows); setActivities(activityRows); setContent(contentRows);
   }, [token]);
 
   useEffect(() => {
     const { url, key } = config();
     if (!url || !key) { setConnection("ยังไม่ได้ตั้งค่า Supabase"); setConnectionTone("warning"); return; }
-    fetch(`${url}/rest/v1/content_items?select=id&limit=1`, { headers: { apikey: key, Authorization: `Bearer ${key}` } }).then((r) => { if (r.ok) { setConnection("เชื่อมต่อแล้ว"); setConnectionTone("success"); } else { setConnection("เชื่อมต่อไม่ได้ กรุณาตรวจ URL และ publishable key"); setConnectionTone("error"); } }).catch(() => { setConnection("เชื่อมต่อไม่ได้ กรุณาตรวจ URL และ publishable key"); setConnectionTone("error"); }); reload();
+    fetch(`${url}/rest/v1/content_items?select=id&limit=1`, { headers: { apikey: key, Authorization: `Bearer ${key}` } }).then((r) => { if (r.ok) { setConnection("เชื่อมต่อแล้ว"); setConnectionTone("success"); } else { setConnection("เชื่อมต่อไม่ได้ กรุณาตรวจ URL และ publishable key"); setConnectionTone("error"); } }).catch(() => { setConnection("เชื่อมต่อไม่ได้ กรุณาตรวจ URL และ publishable key"); setConnectionTone("error"); });
+    const stored = window.localStorage.getItem(SESSION_KEY);
+    if (!stored) { setSessionReady(true); return; }
+    try {
+      const saved = JSON.parse(stored) as StoredSession;
+      if (saved.access_token) setToken(saved.access_token);
+    } catch { window.localStorage.removeItem(SESSION_KEY); }
+    setSessionReady(true);
   }, [reload]);
 
-  async function login() { const { url, key } = config(); if (!url || !key) return; const response = await fetch(`${url}/auth/v1/token?grant_type=password`, { method: "POST", headers: { apikey: key, "Content-Type": "application/json" }, body: JSON.stringify({ email, password }) }); const data = await response.json(); if (!response.ok) { setMessage(data.error_description || "เข้าสู่ระบบไม่สำเร็จ"); return; } setToken(data.access_token); setMessage("เข้าสู่ระบบแล้ว สามารถเพิ่ม แก้ไข และลบข้อมูลได้"); }
+  async function login() { const { url, key } = config(); if (!url || !key) return; const response = await fetch(`${url}/auth/v1/token?grant_type=password`, { method: "POST", headers: { apikey: key, "Content-Type": "application/json" }, body: JSON.stringify({ email, password }) }); const data = await response.json(); if (!response.ok) { setMessage(data.error_description || "เข้าสู่ระบบไม่สำเร็จ"); return; } const stored: StoredSession = { access_token: data.access_token, refresh_token: data.refresh_token, expires_at: data.expires_at }; window.localStorage.setItem(SESSION_KEY, JSON.stringify(stored)); setToken(data.access_token); setPassword(""); setMessage("เข้าสู่ระบบแล้ว เซสชันจะถูกจดจำในเครื่องนี้"); }
+  function logout() { window.localStorage.removeItem(SESSION_KEY); setToken(""); setMessage("ออกจากระบบแล้ว"); }
   async function write(path: string, method: string, body: unknown, success: string) { if (!token) { setMessage("กรุณาเข้าสู่ระบบผู้ดูแลก่อนบันทึกข้อมูล"); return false; } const response = await api(path, { method, headers: { Prefer: "return=minimal" }, body: JSON.stringify(body) }); setMessage(response.ok ? success : "บันทึกไม่สำเร็จ ตรวจสิทธิ์ผู้ดูแลและ RLS ใน Supabase"); if (response.ok) await reload(); return response.ok; }
   async function remove(path: string, success: string) { if (!token) { setMessage("กรุณาเข้าสู่ระบบผู้ดูแลก่อนลบข้อมูล"); return; } if (!window.confirm("ยืนยันการลบรายการนี้?")) return; const response = await api(path, { method: "DELETE" }); setMessage(response.ok ? success : "ลบไม่สำเร็จ ตรวจสิทธิ์ผู้ดูแลและ RLS ใน Supabase"); if (response.ok) await reload(); }
   const saveBackground = () => write("project_background?on_conflict=id", "POST", { id: "main", ...background, status: "published" }, "บันทึกความเป็นมาแล้ว");
@@ -121,5 +134,6 @@ export default function AdminPage() {
 
   const panels: Record<string, ReactNode> = { "ความเป็นมา": <BackgroundPanel />, "คณะอนุกรรมการ": <CommitteePanel />, "ผลสำรวจ": <SurveyPanel />, "กิจกรรม": <ActivityPanel />, "คลังสื่อ": <ContentPanel kind="media" heading="คลังสื่อ" />, "เอกสาร": <ContentPanel kind="document" heading="เอกสารเผยแพร่" />, "สาระสำคัญ": <ProposalPointsPanel />, "มาตรการ": <MeasuresPanel />, "ข้อเสนอแนะ": <ContentPanel kind="proposal" heading="ข้อเสนอแนะ" /> };
   const menu = Object.keys(panels);
-  return <main className="admin-shell"><aside className="admin-sidebar"><div className="admin-brand"><span className="nhrc-mark">กสม.</span><span><b>ค่าไฟแฟร์</b><small>ระบบจัดการเนื้อหา</small></span></div><nav>{menu.map((label) => <button className={active === label ? "selected" : ""} onClick={() => setActive(label)} key={label}>{label}</button>)}</nav><div className="admin-status"><span className="status-dot"></span><span><b>{connection}</b><small>สถานะการเชื่อมต่อฐานข้อมูล</small></span></div></aside><section className="admin-content"><header className="admin-top"><div><p className="admin-kicker">CONTENT MANAGEMENT / {active.toUpperCase()}</p><h1>{active}</h1></div><div className="admin-actions"><button className="outline-button" onClick={seedWebsiteContent}>นำเข้าข้อมูลเดิม</button><a className="outline-button" href="/">ดูเว็บไซต์ ↗</a></div></header><div className={`admin-notice ${connectionTone}`}><span>i</span><p><b>{connection}</b><br />เพิ่ม แก้ไข ลบ อัปโหลดไฟล์ และเปลี่ยนสถานะเนื้อหาได้จากแต่ละหมวด</p></div><section className="admin-panel"><div className="panel-heading"><div><h2>เข้าสู่ระบบผู้ดูแล</h2><p>ใช้บัญชี Supabase ที่มีอยู่ในตาราง admin_users</p></div></div><div className="admin-form-row"><input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="อีเมลผู้ดูแล" type="email" /><input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="รหัสผ่าน" type="password" /><button className="primary-button" onClick={login}>เข้าสู่ระบบ</button></div>{message && <p className="admin-save-message">{message}</p>}</section>{panels[active]}</section></main>;
+  if (!sessionReady) return <main className="admin-shell"><section className="admin-content"><div className="admin-panel"><p className="admin-empty">กำลังตรวจสอบเซสชันผู้ดูแล…</p></div></section></main>;
+  return <main className="admin-shell"><aside className="admin-sidebar"><div className="admin-brand"><span className="nhrc-mark">กสม.</span><span><b>ค่าไฟแฟร์</b><small>ระบบจัดการเนื้อหา</small></span></div><nav>{menu.map((label) => <button className={active === label ? "selected" : ""} onClick={() => setActive(label)} key={label}>{label}</button>)}</nav><div className="admin-status"><span className="status-dot"></span><span><b>{connection}</b><small>สถานะการเชื่อมต่อฐานข้อมูล</small></span></div></aside><section className="admin-content"><header className="admin-top"><div><p className="admin-kicker">CONTENT MANAGEMENT / {active.toUpperCase()}</p><h1>{active}</h1></div><div className="admin-actions"><button className="outline-button" onClick={seedWebsiteContent}>นำเข้าข้อมูลเดิม</button><a className="outline-button" href="/">ดูเว็บไซต์ ↗</a>{token && <button className="outline-button" onClick={logout}>ออกจากระบบ</button>}</div></header><div className={`admin-notice ${connectionTone}`}><span>i</span><p><b>{connection}</b><br />เพิ่ม แก้ไข ลบ อัปโหลดไฟล์ และเปลี่ยนสถานะเนื้อหาได้จากแต่ละหมวด</p></div>{!token && <section className="admin-panel"><div className="panel-heading"><div><h2>เข้าสู่ระบบผู้ดูแล</h2><p>เข้าสู่ระบบครั้งเดียว แล้วจัดการได้ทุกหมวด</p></div></div><div className="admin-form-row"><input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="อีเมลผู้ดูแล" type="email" /><input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="รหัสผ่าน" type="password" /><button className="primary-button" onClick={login}>เข้าสู่ระบบ</button></div>{message && <p className="admin-save-message">{message}</p>}</section>}{token && message && <p className="admin-save-message">{message}</p>}{token ? panels[active] : <section className="admin-panel"><p className="admin-empty">กรุณาเข้าสู่ระบบเพื่อจัดการเนื้อหาเว็บไซต์</p></section>}</section></main>;
 }
