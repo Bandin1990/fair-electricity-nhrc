@@ -1,0 +1,20 @@
+.env.local
+.env.*.local
+node_modules/
+dist/
+.next/
+.wrangler/
+
+# Local source material and unpublished working files
+/.openai/
+/.vinext/
+/build/
+/tmp-*/
+/.npm-cache/
+/Index.pdf
+/All_เอกสารนำเสนอ/
+/site-source/
+/PPT */
+/*.pdf
+/*.docx
+/*.txt
