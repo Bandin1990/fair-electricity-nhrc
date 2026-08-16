@@ -81,11 +81,23 @@ export default function AdminPage() {
     fetch(`${url}/rest/v1/content_items?select=id&limit=1`, { headers: { apikey: key, Authorization: `Bearer ${key}` } }).then((r) => { if (r.ok) { setConnection("เชื่อมต่อแล้ว"); setConnectionTone("success"); } else { setConnection("เชื่อมต่อไม่ได้ กรุณาตรวจ URL และ publishable key"); setConnectionTone("error"); } }).catch(() => { setConnection("เชื่อมต่อไม่ได้ กรุณาตรวจ URL และ publishable key"); setConnectionTone("error"); });
     const stored = window.localStorage.getItem(SESSION_KEY);
     if (!stored) { setSessionReady(true); return; }
-    try {
-      const saved = JSON.parse(stored) as StoredSession;
-      if (saved.access_token) setToken(saved.access_token);
-    } catch { window.localStorage.removeItem(SESSION_KEY); }
-    setSessionReady(true);
+    const restore = async () => {
+      try {
+        const saved = JSON.parse(stored) as StoredSession;
+        let next = saved;
+        if (saved.refresh_token && saved.expires_at && saved.expires_at * 1000 < Date.now() + 60_000) {
+          const response = await fetch(`${url}/auth/v1/token?grant_type=refresh_token`, { method: "POST", headers: { apikey: key, "Content-Type": "application/json" }, body: JSON.stringify({ refresh_token: saved.refresh_token }) });
+          if (response.ok) {
+            const data = await response.json();
+            next = { access_token: data.access_token, refresh_token: data.refresh_token, expires_at: data.expires_at };
+            window.localStorage.setItem(SESSION_KEY, JSON.stringify(next));
+          }
+        }
+        if (next.access_token) setToken(next.access_token); else window.localStorage.removeItem(SESSION_KEY);
+      } catch { window.localStorage.removeItem(SESSION_KEY); }
+      setSessionReady(true);
+    };
+    void restore();
   }, [reload]);
 
   async function login() { const { url, key } = config(); if (!url || !key) return; const response = await fetch(`${url}/auth/v1/token?grant_type=password`, { method: "POST", headers: { apikey: key, "Content-Type": "application/json" }, body: JSON.stringify({ email, password }) }); const data = await response.json(); if (!response.ok) { setMessage(data.error_description || "เข้าสู่ระบบไม่สำเร็จ"); return; } const stored: StoredSession = { access_token: data.access_token, refresh_token: data.refresh_token, expires_at: data.expires_at }; window.localStorage.setItem(SESSION_KEY, JSON.stringify(stored)); setToken(data.access_token); setPassword(""); setMessage("เข้าสู่ระบบแล้ว เซสชันจะถูกจดจำในเครื่องนี้"); }
