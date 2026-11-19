@@ -11,7 +11,6 @@ type ProposalDocument = { id?: string; title: string; summary: string; file_url:
 const defaultProposalDocuments: ProposalDocument[] = [
   { title: "ข้อเสนอแนะค่าไฟ — ฉบับสมบูรณ์", summary: "ข้อเสนอแนะ กสม. เลขที่ 229/2569 ลงวันที่ 1 กันยายน 2569 · PDF 79 หน้า", file_url: "/docs/ข้อเสนอแนะค่าไฟ-ฉบับเต็ม.pdf", sort_order: 1, status: "published" },
   { title: "เอกสารนำเสนอข้อเสนอแนะ", summary: "สรุปสาระสำคัญสำหรับการนำเสนอ", file_url: "/docs/เอกสารนำเสนอ-ข้อเสนอแนะค่าไฟ.pdf", sort_order: 2, status: "published" },
-  { title: "รายงานที่เกี่ยวข้อง", summary: "รายงานผลการดำเนินงานโครงการ", file_url: "/docs/รายงานข้อเสนอแนะ-ฉบับกรกฎาคม.pdf", sort_order: 3, status: "published" },
 ];
 function mediaThumbnail(url: string, kind: "video" | "document") {
   if (/\.(png|jpe?g|gif|webp|avif|svg)(?:\?|$)/i.test(url)) return url;
@@ -117,7 +116,7 @@ export default function Home() {
       const hasFullReport = rows.some((document) => document.title === fullReport.title);
       setProposalDocuments([
         ...(!hasFullReport ? [fullReport] : []),
-        ...rows.map((document) => document.title === fullReport.title ? { ...document, file_url: fullReport.file_url, summary: fullReport.summary } : document),
+        ...rows.filter((document) => document.title !== "รายงานที่เกี่ยวข้อง" && document.file_url !== "/docs/รายงานข้อเสนอแนะ-ฉบับกรกฎาคม.pdf").map((document) => document.title === fullReport.title ? { ...document, file_url: fullReport.file_url, summary: fullReport.summary } : document),
       ]);
     }).catch(() => {});
   }, []);
