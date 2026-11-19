@@ -23,6 +23,16 @@ create table if not exists public.content_items (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+alter table public.content_items
+  add column if not exists media_type text not null default '';
+alter table public.content_items
+  add column if not exists channel text not null default '';
+alter table public.content_items
+  add column if not exists view_count text not null default '';
+alter table public.content_items
+  add column if not exists published_label text not null default '';
+alter table public.content_items
+  add column if not exists stat_label text not null default '';
 create index if not exists content_items_status_idx on public.content_items(status);
 create index if not exists content_items_kind_idx on public.content_items(kind);
 
@@ -36,11 +46,14 @@ create table if not exists public.activities (
   participants_label text not null default '',
   detail text not null default '',
   cover_url text,
+  sort_order integer not null default 0,
   status text not null default 'draft' check (status in ('draft','published','archived')),
   created_by uuid references auth.users(id) on delete set null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+alter table public.activities
+  add column if not exists sort_order integer not null default 0;
 create index if not exists activities_status_idx on public.activities(status);
 
 create table if not exists public.activity_attachments (
@@ -73,9 +86,13 @@ create table if not exists public.project_background (
   title text not null default 'ความเป็นมา [ต่อ]',
   facts jsonb not null default '[]'::jsonb,
   closing text not null default '',
+  source_url text not null default 'https://www.nhrc.or.th/th/electricity',
   status text not null default 'published' check (status in ('draft','published','archived')),
   updated_at timestamptz not null default now()
 );
+
+alter table public.project_background
+  add column if not exists source_url text not null default 'https://www.nhrc.or.th/th/electricity';
 
 create table if not exists public.project_survey (
   id text primary key default 'main' check (id = 'main'),

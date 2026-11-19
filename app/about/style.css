@@ -1,0 +1,15 @@
+.about-page{min-height:100vh;background:#fcfbf7;color:#12202b}
+.about-shell{width:min(860px,calc(100% - 48px));margin-inline:auto}
+.about-header{background:#102b3b;color:#fff;padding:36px 0 62px;border-top:8px solid #ee6d3a}
+.about-back{display:inline-block;margin-bottom:54px;color:#f6c4ae;font-size:14px;font-weight:700}
+.about-back:hover{text-decoration:underline;text-underline-offset:4px}
+.about-kicker{margin:0 0 18px;color:#f6c4ae;font-size:13px}
+.about-header h1{margin:0;font-size:clamp(36px,5vw,60px);line-height:1.25;letter-spacing:-.02em}
+.about-content{padding-top:56px;padding-bottom:100px;font-size:17px;line-height:2}
+.about-content>p{margin-bottom:42px}
+.about-content section{margin:56px 0}
+.about-content h2{font-size:clamp(26px,3vw,36px);line-height:1.4;letter-spacing:0;margin:0 0 24px;padding-bottom:14px;border-bottom:2px solid #ee6d3a}
+.about-content ol{margin:24px 0 0;padding-left:2.5em}
+.about-content li{padding-left:.6em;margin-bottom:22px}
+.about-content li::marker{color:#d75e2b;font-weight:700}
+@media(max-width:600px){.about-header{padding-bottom:46px}.about-back{margin-bottom:42px}.about-content{padding-top:38px;padding-bottom:64px;font-size:15px}.about-content section{margin:44px 0}.about-content ol{padding-left:1.8em}}

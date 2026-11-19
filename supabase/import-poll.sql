@@ -6,7 +6,7 @@ create table if not exists public.project_survey (
   title text not null,
   intro text not null default '',
   highlights jsonb not null default '[]'::jsonb,
-  source_url text not null default '/docs/Electricity-Poll-Report.docx',
+  source_url text not null default '/docs/Electricity-Poll-Report.pdf',
   status text not null default 'published' check (status in ('draft','published','archived')),
   updated_at timestamptz not null default now()
 );
@@ -30,10 +30,10 @@ insert into public.project_survey (id, title, intro, highlights, source_url, sta
     "การรับรู้มาตรการค่าไฟแบบแปรผันตามช่วงเวลา (TOU) ยังมีจำกัด: รู้จักและใช้งาน 5.96% รู้จักแต่ยังไม่ใช้ 18.36% และไม่รู้จัก 75.67%",
     "เสียงสะท้อนจากแบบสอบถามชี้ให้เห็นความต้องการทั้งการปรับโครงสร้างค่าไฟให้เป็นธรรม การเปิดเผยข้อมูลต้นทุน และมาตรการที่ช่วยให้ประชาชนเข้าถึงสิทธิได้จริง"
   ]'::jsonb,
-  '/docs/Electricity-Poll-Report.docx',
+  '/docs/Electricity-Poll-Report.pdf',
   'published'
 );
 
-delete from public.content_items where source_url = '/docs/Electricity-Poll-Report.docx';
+delete from public.content_items where source_url in ('/docs/Electricity-Poll-Report.docx', '/docs/Electricity-Poll-Report.pdf');
 insert into public.content_items (kind, title, summary, source_url, storage_path, status, published_at)
-values ('document', 'รายงานผลสำรวจความคิดเห็นสาธารณะเรื่องค่าไฟฟ้า', 'รายงานฉบับเต็มของการสำรวจความคิดเห็นประชาชนเกี่ยวกับภาระค่าไฟฟ้า ผลกระทบ และความต้องการเชิงนโยบาย', '/docs/Electricity-Poll-Report.docx', 'Electricity-Poll-Report.docx', 'published', now());
+values ('document', 'รายงานผลสำรวจความคิดเห็นสาธารณะเรื่องค่าไฟฟ้า', 'รายงานฉบับเต็มของการสำรวจความคิดเห็นประชาชนเกี่ยวกับภาระค่าไฟฟ้า ผลกระทบ และความต้องการเชิงนโยบาย', '/docs/Electricity-Poll-Report.pdf', 'Electricity-Poll-Report.pdf', 'published', now());

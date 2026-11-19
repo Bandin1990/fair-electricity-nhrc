@@ -27,19 +27,22 @@ insert into public.project_metrics (id, label, value, detail, sort_order, status
 delete from public.committee_members where name in (
   'สยามล ไกยูรวงศ์', 'ชาญเชาวน์ ไชยานุกิจ', 'ประวิทย์ ลี่สถาพรวงศา', 'ปิติ เอี่ยมจำรูญลาภ',
   'อารีพร อัศวินพงศ์พันธ์', 'รัตติกุล จันทร์สุริยา', 'จุมพล ขุนอ่อน', 'พิมพ์ดาว จันทร์ธนธัย',
-  'ศิรสาดา ผิวหอม', 'บัณฑิต หอมเกษ'
+  'ศิรสาดา ผิวหอม', 'บัณฑิต หอมเกษ',
+  'นางสาวศยามล ไกยูรวงศ์', 'นายชาญเชาวน์ ไชยานุกิจ', 'นายประวิทย์ ลี่สถาพรวงศา',
+  'ผู้ช่วยศาสตราจารย์ปิติ เอี่ยมจำรูญลาภ', 'นางรัตติกุล จันทร์สุริยา', 'นางสาวอารีพร อัศวินพงศ์พันธ์',
+  'นายจุมพล ขุนอ่อน', 'นางสาวพิมพ์ดาว จันทรขันตี', 'นางสาวศิริลดา ผิวหอม', 'นายบัณฑิต หอมเกษ'
 );
 insert into public.committee_members (name, role, image_url, sort_order, status) values
-  ('สยามล ไกยูรวงศ์', 'ที่ปรึกษาคณะอนุกรรมการ', '/media/committee-1.jpg', 1, 'published'),
-  ('ชาญเชาวน์ ไชยานุกิจ', 'ประธานคณะอนุกรรมการ', '/media/committee-2.jpg', 2, 'published'),
-  ('ประวิทย์ ลี่สถาพรวงศา', 'อนุกรรมการ', '/media/committee-3.jpg', 3, 'published'),
-  ('ปิติ เอี่ยมจำรูญลาภ', 'อนุกรรมการ', '/media/committee-4.jpg', 4, 'published'),
-  ('อารีพร อัศวินพงศ์พันธ์', 'อนุกรรมการ', '/media/committee-5.jpg', 5, 'published'),
-  ('รัตติกุล จันทร์สุริยา', 'อนุกรรมการ', '/media/committee-6.jpg', 6, 'published'),
-  ('จุมพล ขุนอ่อน', 'อนุกรรมการ', '/media/committee-7.jpg', 7, 'published'),
-  ('พิมพ์ดาว จันทร์ธนธัย', 'เลขานุการ', '/media/committee-8.jpg', 8, 'published'),
-  ('ศิรสาดา ผิวหอม', 'ผู้ช่วยเลขานุการ', '/media/committee-9.jpg', 9, 'published'),
-  ('บัณฑิต หอมเกษ', 'ผู้ช่วยเลขานุการ', '/media/committee-10.jpg', 10, 'published');
+  ('นางสาวศยามล ไกยูรวงศ์', 'ที่ปรึกษาคณะอนุกรรมการ', '/media/committee-1.jpg', 1, 'published'),
+  ('นายชาญเชาวน์ ไชยานุกิจ', 'ประธานอนุกรรมการ', '/media/committee-2.jpg', 2, 'published'),
+  ('นายประวิทย์ ลี่สถาพรวงศา', 'อนุกรรมการ', '/media/committee-3.jpg', 3, 'published'),
+  ('ผู้ช่วยศาสตราจารย์ปิติ เอี่ยมจำรูญลาภ', 'อนุกรรมการ', '/media/committee-4.jpg', 4, 'published'),
+  ('นางรัตติกุล จันทร์สุริยา', 'อนุกรรมการ', '/media/committee-6.jpg', 5, 'published'),
+  ('นางสาวอารีพร อัศวินพงศ์พันธ์', 'อนุกรรมการ', '/media/committee-5.jpg', 6, 'published'),
+  ('นายจุมพล ขุนอ่อน', 'อนุกรรมการ', '/media/committee-7.jpg', 7, 'published'),
+  ('นางสาวพิมพ์ดาว จันทรขันตี', 'เลขานุการ', '/media/committee-8.jpg', 8, 'published'),
+  ('นางสาวศิริลดา ผิวหอม', 'ผู้ช่วยเลขานุการ', '/media/committee-9.jpg', 9, 'published'),
+  ('นายบัณฑิต หอมเกษ', 'ผู้ช่วยเลขานุการ', '/media/committee-10.jpg', 10, 'published');
 
 delete from public.content_items where source_url in (
   '/docs/รายงานผลการดำเนินการและรายงานค่าใช้จ่าย.docx',
