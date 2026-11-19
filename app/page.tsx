@@ -86,7 +86,13 @@ export default function Home() {
     if (!url || !key) { setActivityLoadState("error"); return; }
     const headers = { apikey: key, Authorization: `Bearer ${key}` };
     fetch(`${url}/rest/v1/project_background?id=eq.main&select=title,facts,closing,source_url,image_url`, { headers }).then((r) => r.ok ? r.json() : []).then((rows) => rows[0] && setBackground({ ...fallbackBackground, ...rows[0], source_url: rows[0].source_url?.trim() || fallbackBackground.source_url })).catch(() => {});
-    fetch(`${url}/rest/v1/committee_members?select=id,name,role,note,image_url&status=eq.published&order=sort_order.asc`, { headers }).then((r) => r.ok ? r.json() : []).then((rows) => rows.length && setCommittee(rows)).catch(() => {});
+    fetch(`${url}/rest/v1/committee_members?select=id,name,role,note,image_url&status=eq.published&order=sort_order.asc`, { headers }).then((r) => r.ok ? r.json() : []).then((rows: CommitteeMember[]) => {
+      if (!rows.length) return;
+      setCommittee(fallbackCommittee.map((member) => {
+        const portrait = rows.find((row) => member.name.endsWith(row.name.trim()));
+        return { ...member, image_url: portrait?.image_url || member.image_url };
+      }));
+    }).catch(() => {});
     fetch(`${url}/rest/v1/project_survey?id=eq.main&select=title,intro,highlights,source_url`, { headers }).then((r) => r.ok ? r.json() : []).then((rows) => {
       const remote = rows[0] as Partial<ProjectSurvey> | undefined;
       if (!remote) return;
@@ -96,7 +102,7 @@ export default function Home() {
         title: remote.title?.trim() || fallbackSurvey.title,
         intro: remote.intro?.trim() || fallbackSurvey.intro,
         highlights: Array.isArray(remote.highlights) && remote.highlights.length ? remote.highlights : fallbackSurvey.highlights,
-        source_url: remote.source_url?.trim() === "/docs/Electricity-Poll-Report.docx" ? fallbackSurvey.source_url : remote.source_url?.trim() || fallbackSurvey.source_url,
+        source_url: fallbackSurvey.source_url,
       });
     }).catch(() => {});
     fetch(`${url}/rest/v1/activities?status=eq.published&select=slug,date_label,title,audience,location,participants_label,sort_order&order=sort_order.asc,created_at.desc`, { headers }).then((r) => { if (!r.ok) throw new Error("Activity data unavailable"); return r.json(); }).then((rows) => { setManagedActivities(rows); setActivityLoadState("ready"); }).catch(() => setActivityLoadState("error"));
@@ -105,7 +111,15 @@ export default function Home() {
     fetch(`${url}/rest/v1/content_items?kind=eq.proposal&status=eq.published&select=title,summary,detail,cover_url&order=created_at.asc`, { headers }).then((r) => r.ok ? r.json() : []).then((rows) => rows.length && setManagedRights(rows)).catch(() => {});
     fetch(`${url}/rest/v1/proposal_points?status=eq.published&select=id,title,summary,sort_order,status&order=sort_order.asc`, { headers }).then((r) => r.ok ? r.json() : []).then((rows) => rows.length && setProposalPoints(rows)).catch(() => {});
     fetch(`${url}/rest/v1/proposal_measures?status=eq.published&select=id,point_order,category_title,item_no,title,agencies,timeframe,detail,sort_order,status&order=sort_order.asc`, { headers }).then((r) => r.ok ? r.json() : []).then((rows) => rows.length && setMeasures(rows)).catch(() => {});
-    fetch(`${url}/rest/v1/proposal_documents?status=eq.published&select=id,title,summary,file_url,sort_order,status&order=sort_order.asc`, { headers }).then((r) => r.ok ? r.json() : []).then((rows) => rows.length && setProposalDocuments(rows)).catch(() => {});
+    fetch(`${url}/rest/v1/proposal_documents?status=eq.published&select=id,title,summary,file_url,sort_order,status&order=sort_order.asc`, { headers }).then((r) => r.ok ? r.json() : []).then((rows: ProposalDocument[]) => {
+      if (!rows.length) return;
+      const fullReport = defaultProposalDocuments[0];
+      const hasFullReport = rows.some((document) => document.title === fullReport.title);
+      setProposalDocuments([
+        ...(!hasFullReport ? [fullReport] : []),
+        ...rows.map((document) => document.title === fullReport.title ? { ...document, file_url: fullReport.file_url, summary: fullReport.summary } : document),
+      ]);
+    }).catch(() => {});
   }, []);
   useEffect(() => {
     const phrase = "ค่าไฟที่เป็นธรรม|คือสิทธิของทุกคน";
