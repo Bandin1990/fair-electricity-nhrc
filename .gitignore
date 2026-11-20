@@ -12,6 +12,8 @@ dist/
 /tmp-*/
 /~WRL*.tmp
 /.npm-cache/
+/.supabase-cli/
+/supabase/.temp/
 /Index.pdf
 /All_เอกสารนำเสนอ/
 /site-source/

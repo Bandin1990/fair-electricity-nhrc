@@ -47,7 +47,7 @@ export const fallbackSurvey: ProjectSurvey = {
     "การรับรู้มาตรการค่าไฟแบบแปรผันตามช่วงเวลา (TOU) ยังมีจำกัด: รู้จักและใช้งาน 5.96% รู้จักแต่ยังไม่ใช้ 18.36% และไม่รู้จัก 75.67%",
     "เสียงสะท้อนจากแบบสอบถามชี้ให้เห็นความต้องการทั้งการปรับโครงสร้างค่าไฟให้เป็นธรรม การเปิดเผยข้อมูลต้นทุน และมาตรการที่ช่วยให้ประชาชนเข้าถึงสิทธิได้จริง",
   ],
-  source_url: "/docs/Electricity-Poll-Report.pdf",
+  source_url: "https://uervlfkcqzasodbpfyos.supabase.co/storage/v1/object/public/site-media/electricity-poll-report-4-20261120.pdf",
 };
 
 export const fallbackProposalPoints: ProposalPoint[] = [
